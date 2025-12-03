@@ -1,45 +1,205 @@
-// src/gestion_niveau.c
-// ... (Vos #includes, Structures, et autres fonctions)
-#include <string.h> // Ajouté si vous n'avez pas encore inclus
+#include "gestion_niveau.h"
+#include "moteur_jeu.h"
+#include "affichage_console.h"
+#include "clavier.h"
+#include <time.h>
 
-// --- 4. Implémentation de chargerContrat ---
- chargerContrat(int niveau, Contrat *c) {
-    FILE *fichier = NULL;
-    int niveauLu;
+/*
+    chargerContrat :
+    je mets les objectifs du niveau + coups max + temps max.
+    Version simple pour le projet.
+*/
+void chargerContrat(int niveau, Contrat *c)
+{
+    // je mets tout a 0 au debut
+    for (int i = 0; i < NB_TYPES_ITEM; i++)
+        c->objectif_item[i] = 0;
 
-    // 1. Ouvrir le fichier en mode lecture ("r").
-    // Attention au chemin d'accès ! On utilise un chemin relatif.
-    fichier = fopen("data/niveaux.txt", "r");
+    if (niveau == 1)
+    {
+        c->objectif_item[0] = 10;
+        c->objectif_item[1] = 15;
 
-    if (fichier == NULL) {
-        printf("Erreur Critique: Le fichier des niveaux (data/niveaux.txt) est introuvable. Verifiez le chemin d'acces.\n");
-        // En cas d'erreur, on peut attribuer un contrat vide pour éviter un crash complet.
-        c->coupsRestants = 0;
-        c->tempsRestant = 0;
-        return;
+        c->max_coups = 20;
+        c->max_temps = 60;
     }
+    else if (niveau == 2)
+    {
+        c->objectif_item[0] = 20;
+        c->objectif_item[2] = 10;
+        c->objectif_item[4] = 10;
 
-    // 2. Parcourir le fichier ligne par ligne (8 entiers par ligne)
-    while (fscanf(fichier, "%d %d %d %d %d %d %d %d",
-                  &niveauLu,
-                  &c->objectifs[0], &c->objectifs[1],
-                  &c->objectifs[2], &c->objectifs[3],
-                  &c->objectifs[4],
-                  &c->coupsRestants,
-                  &c->tempsRestant) == 8) {
+        c->max_coups = 30;
+        c->max_temps = 90;
+    }
+    else
+    {
+        c->objectif_item[1] = 20;
+        c->objectif_item[2] = 15;
+        c->objectif_item[3] = 20;
 
-        // 3. Tester si le niveau lu correspond
-        if (niveauLu == niveau) {
-            fclose(fichier); // Fermer le fichier
-            return;          // Niveau trouvé, on sort
+        c->max_coups = 35;
+        c->max_temps = 120;
+    }
+}
+
+/*
+    initNiveau :
+    je prepare tout le niveau:
+    - charger contrat
+    - coups, temps, score
+    - remplir la grille au hasard
+    - stabiliser pour avoir une grille jouable
+*/
+void initNiveau(int niveau,
+                int grille[NB_LIGNES][NB_COLONNES],
+                Contrat *c,
+                int *coupsRestants,
+                int *tempsRestant,
+                int *score)
+{
+    chargerContrat(niveau, c);
+
+    *coupsRestants = c->max_coups;
+    *tempsRestant  = c->max_temps;
+    *score         = 0;
+
+    srand(time(NULL));
+
+    // je mets des items aleatoires dans la grille
+    for (int i = 0; i < NB_LIGNES; i++)
+    {
+        for (int j = 0; j < NB_COLONNES; j++)
+        {
+            grille[i][j] = rand() % NB_TYPES_ITEM;
         }
     }
 
-    // Si la boucle se termine sans trouver le niveau demandé (ex: niveau 10 non défini)
-    printf("Avertissement: Le niveau %d n'a pas ete trouve. Reinitialisation du contrat.\n", niveau);
-    c->coupsRestants = 0;
-    c->tempsRestant = 0;
+    // pour avoir une grille jouable
+    stabiliserPlateau(grille);
+}
 
-    // 4. Fermer le fichier
-    fclose(fichier);
+/*
+    majContratApresSuppression :
+    quand un groupe dâ€™items est supprimÃ© :
+    - si item demandÃ© -> je diminue lâ€™objectif
+    - sinon -> penalite (on perd 1 coup)
+    + je rajoute du score
+*/
+void majContratApresSuppression(int typeFruit, int nb, int *score,
+                                Contrat *c, int *coupsRestants)
+{
+    if (typeFruit < 0 || typeFruit >= NB_TYPES_ITEM)
+        return;
+
+    if (c->objectif_item[typeFruit] > 0)
+    {
+        c->objectif_item[typeFruit] -= nb;
+        if (c->objectif_item[typeFruit] < 0)
+            c->objectif_item[typeFruit] = 0;
+
+        *score += nb * 10; // bonus
+    }
+    else
+    {
+        (*coupsRestants)--; // penalite
+    }
+}
+
+/*
+    testSuccesContrat :
+    si tous les objectifs sont finis -> niveau reussi
+*/
+int testSuccesContrat(Contrat c)
+{
+    for (int i = 0; i < NB_TYPES_ITEM; i++)
+    {
+        if (c.objectif_item[i] > 0)
+            return 0; // pas encore fini
+    }
+    return 1; // fini
+}
+
+/*
+    testEchecNiveau :
+    si plus de coups ou plus de temps ET contrat pas fini -> perdu
+*/
+int testEchecNiveau(int coupsRestants, int tempsRestant, Contrat c)
+{
+    if ((coupsRestants <= 0 || tempsRestant <= 0) &&
+        !testSuccesContrat(c))
+    {
+        return 1; // perdu
+    }
+    return 0; // peut continuer
+}
+
+/*
+    jouerNiveau :
+    c'est la boucle du jeu :
+    - afficher
+    - choisir 2 cases
+    - echanger
+    - verifier
+    - stabiliser
+    - maj contrat
+    - tester si gagne/perdu
+*/
+void jouerNiveau(int niveau, int *vies)
+{
+    int grille[NB_LIGNES][NB_COLONNES];
+    Contrat c;
+
+    int coupsRestants;
+    int tempsRestant;
+    int score;
+
+    initNiveau(niveau, grille, &c, &coupsRestants, &tempsRestant, &score);
+
+    while (1)
+    {
+        afficherPlateau(grille);
+
+        printf("\nNiveau %d | Vies : %d | Coups : %d | Temps : %d | Score : %d\n",
+               niveau, *vies, coupsRestants, tempsRestant, score);
+
+        int x1, y1, x2, y2;
+
+        // choix des cases par le joueur
+        deplacementCurseur(&x1, &y1);
+        deplacementCurseur(&x2, &y2);
+
+        if (!estVoisin(x1, y1, x2, y2))
+            continue;
+
+        echangerItems(grille, x1, y1, x2, y2);
+
+        if (!mouvementValide(grille, x1, y1, x2, y2))
+        {
+            echangerItems(grille, x1, y1, x2, y2);
+            continue;
+        }
+
+        int typeRemoved = grille[x2][y2];
+        int nbRemoved = 1;
+
+        stabiliserPlateau(grille);
+
+        majContratApresSuppression(typeRemoved, nbRemoved, &score, &c, &coupsRestants);
+
+        if (testSuccesContrat(c))
+        {
+            printf("\n*** Niveau reussi ***\n");
+            return;
+        }
+
+        if (testEchecNiveau(coupsRestants, tempsRestant, c))
+        {
+            printf("\n*** Niveau perdu ***\n");
+            (*vies)--;
+            return;
+        }
+
+        tempsRestant--;
+    }
 }
