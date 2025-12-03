@@ -1,45 +1,34 @@
 #ifndef GESTION_NIVEAU_H
 #define GESTION_NIVEAU_H
 
-#include "common.h"   // NB_LIGNES, NB_COLONNES, NB_TYPES_ITEM
-#include "grille.h"    // pour générer et afficher la grille
+#include "common.h"          
+#include "grille.h"         
+#include "moteur_jeu.h"     
+#include "affichage_console.h"
+#include "clavier.h"
 
-// ============================================================================
-//  STRUCTURE DU CONTRAT
-// ============================================================================
 typedef struct {
-    int objectif_item[NB_TYPES_ITEM];   // objectifs pour chaque type d’item
-    int max_coups;                      // nombre maximum de coups
-    int max_temps;                      // temps maximum du niveau
-    } Contrat;
+    int objectif_item[NB_TYPES_ITEM];  
+    int max_coups;                      
+    int max_temps;                      
+} Contrat;
 
 
-// ============================================================================
-//  PROTOTYPES DU MODULE GESTION NIVEAU
-// ============================================================================
-
-// Charge le contrat associé à un niveau
-    void chargerContrat(int niveau, Contrat *c);
-
-// Initialise la grille et le contrat
-    void initNiveau(int niveau,
+void chargerContrat(int niveau, Contrat *c);
+void initNiveau(int niveau,
                 int grille[NB_LIGNES][NB_COLONNES],
-                Contrat *c);
-
-// Met à jour le contrat après une suppression
-    void majContratApresSuppression(int typeFruit,
+                Contrat *c,
+                int *coupsRestants,
+                int *tempsRestant,
+                int *score);
+void majContratApresSuppression(int typeFruit,
                                 int nb,
                                 int *score,
                                 Contrat *c,
                                 int *coupsRestants);
-
-// Vérifie si tous les objectifs sont atteints
-    int testSuccesContrat(Contrat c);
-
-// Vérifie si le niveau est échoué (plus de temps ou coups)
-    int testEchecNiveau(int coupsRestants, int tempsRestant, Contrat c);
-
-// Lance la boucle de jeu d’un niveau
-    void jouerNiveau(int niveau, int *vies);
+int testSuccesContrat(Contrat c);
+int testEchecNiveau(int coupsRestants, int tempsRestant, Contrat c);
+void jouerNiveau(int niveau, int *vies);
 
 #endif
+
