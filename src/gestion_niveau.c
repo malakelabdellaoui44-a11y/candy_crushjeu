@@ -1,9 +1,8 @@
-#include "gestion_niveau.h"
-#include "moteur_jeu.h"
-#include "affichage_console.h"
-#include "clavier.h"
+#include "../include/gestion_niveau.h"
+#include "../include/moteur_jeu.h"
+#include "../include/affichage_console.h"
+#include "../include/clavier.h"
 #include <time.h>
-
 /*
     chargerContrat :
     je mets les objectifs du niveau + coups max + temps max.
