@@ -1,112 +1,45 @@
-#include "../include/gestion_niveau.h"
-#include "../include/grille.h"
-#include <stdio.h>
+#ifndef GESTION_NIVEAU_H
+#define GESTION_NIVEAU_H
 
-void chargerContrat(int niveau, Contrat *c)
-    {
-    for (int i = 0; i < NB_TYPES_ITEM; i++) {
-        c->objectif_item[i] = 0;
-     }
+#include "common.h"   // NB_LIGNES, NB_COLONNES, NB_TYPES_ITEM
+#include "grille.h"    // pour générer et afficher la grille
 
-    c->max_coups = 0;
-    c->max_temps = 0;
+// ============================================================================
+//  STRUCTURE DU CONTRAT
+// ============================================================================
+typedef struct {
+    int objectif_item[NB_TYPES_ITEM];   // objectifs pour chaque type d’item
+    int max_coups;                      // nombre maximum de coups
+    int max_temps;                      // temps maximum du niveau
+    } Contrat;
 
-    if (niveau == 1) {
-        c->objectif_item[0] = 10;
-        c->objectif_item[1] = 15;
 
-        c->max_coups = 20;
-        c->max_temps = 60;
-        }
-else if (niveau == 2) {
-        c->objectif_item[0] = 5;
-        c->objectif_item[2] = 8;
+// ============================================================================
+//  PROTOTYPES DU MODULE GESTION NIVEAU
+// ============================================================================
 
-        c->max_coups = 25;
-        c->max_temps = 75;
-        }
-else    {
-      
-        c->max_coups = 15;
-        c->max_temps = 45;
-        }
-        }
-void initNiveau(int niveau,
+// Charge le contrat associé à un niveau
+    void chargerContrat(int niveau, Contrat *c);
+
+// Initialise la grille et le contrat
+    void initNiveau(int niveau,
                 int grille[NB_LIGNES][NB_COLONNES],
-                Contrat *c)
-        {
-    chargerContrat(niveau, c);
-    genererGrilleAleatoire(grille);
-        }
+                Contrat *c);
 
-void majContratApresSuppression(int typeFruit,
+// Met à jour le contrat après une suppression
+    void majContratApresSuppression(int typeFruit,
                                 int nb,
                                 int *score,
                                 Contrat *c,
-                                int *coupsRestants)
-        {
-    if (typeFruit >= 0 && typeFruit < NB_TYPES_ITEM) {
-        c->objectif_item[typeFruit] -= nb;
+                                int *coupsRestants);
 
-        if (c->objectif_item[typeFruit] < 0) {
-            c->objectif_item[typeFruit] = 0;
-        }
-        }    
+// Vérifie si tous les objectifs sont atteints
+    int testSuccesContrat(Contrat c);
 
-    *score += nb * 10;
-    (*coupsRestants)--;
-        }
-int testSuccesContrat(Contrat c)
-        {
-    for (int i = 0; i < NB_TYPES_ITEM; i++) {
-        if (c.objectif_item[i] > 0) {
-            return 0;   
-        }
-        }
-    return 1;         
-        }
+// Vérifie si le niveau est échoué (plus de temps ou coups)
+    int testEchecNiveau(int coupsRestants, int tempsRestant, Contrat c);
 
-int testEchecNiveau(int coupsRestants, int tempsRestant, Contrat c)
-        {
-    if (testSuccesContrat(c)) {
-        return 0; // Impossible d'échouer si le contrat est validé
-        }
+// Lance la boucle de jeu d’un niveau
+    void jouerNiveau(int niveau, int *vies);
 
-    if (coupsRestants <= 0 || tempsRestant <= 0) {
-        return 1; // Conditions d’échec remplies
-          }
-
-    return 0;
-        }
-
-void jouerNiveau(int niveau, int *vies)
-{
-    int grille[NB_LIGNES][NB_COLONNES];
-    Contrat c;
-    int score = 0;
-    initNiveau(niveau, grille, &c);
-
-    int coups = c.max_coups;
-    int temps = c.max_temps;
-
-    while (!testSuccesContrat(c) && !testEchecNiveau(coups, temps, c)) {
-
-        afficherGrille(grille);
-
-        printf("\nCoups restants : %d | Temps restant : %d | Score : %d\n",
-               coups, temps, score);
-
-        int typeFruit, nbSupp;
-        simulerSuppression(grille, &typeFruit, &nbSupp);
-        majContratApresSuppression(typeFruit, nbSupp, &score, &c, &coups);
-
-        temps--;
-    }    
-    if (testSuccesContrat(c)) {
-        printf("\n🎉 Niveau %d réussi !\n", niveau);
-    } else {
-        printf("\n❌ Niveau %d échoué !\n", niveau);
-        (*vies)--;
-    }
-        }
-        
+#endif
