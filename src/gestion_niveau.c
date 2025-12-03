@@ -15,7 +15,6 @@ void chargerContrat(int niveau, Contrat *c)
     {
         c->objectif_item[0] = 10;
         c->objectif_item[1] = 15;
-
         c->max_coups = 20;
         c->max_temps = 60;
     }
@@ -24,20 +23,19 @@ void chargerContrat(int niveau, Contrat *c)
         c->objectif_item[0] = 20;
         c->objectif_item[2] = 10;
         c->objectif_item[4] = 10;
-
         c->max_coups = 30;
         c->max_temps = 90;
     }
-    else // Niveau 3
+    else
     {
         c->objectif_item[1] = 20;
         c->objectif_item[2] = 15;
         c->objectif_item[3] = 20;
-
         c->max_coups = 35;
         c->max_temps = 120;
     }
 }
+
 void initNiveau(int niveau,
                 int grille[NB_LIGNES][NB_COLONNES],
                 Contrat *c,
@@ -50,12 +48,16 @@ void initNiveau(int niveau,
     *coupsRestants = c->max_coups;
     *tempsRestant  = c->max_temps;
     *score         = 0;
+
     srand(time(NULL));
+
     for (int i = 0; i < NB_LIGNES; i++)
         for (int j = 0; j < NB_COLONNES; j++)
             grille[i][j] = rand() % NB_TYPES_ITEM;
+
     stabiliserPlateau(grille);
 }
+
 void majContratApresSuppression(int typeFruit, int nb, int *score,
                                 Contrat *c, int *coupsRestants)
 {
@@ -68,32 +70,35 @@ void majContratApresSuppression(int typeFruit, int nb, int *score,
         if (c->objectif_item[typeFruit] < 0)
             c->objectif_item[typeFruit] = 0;
 
-        *score += nb * 10; // bonus
+        *score += nb * 10;
     }
     else
     {
-        (*coupsRestants)--; // pénalité
+        (*coupsRestants)--;
     }
 }
 
-//  TEST SUCCÈS DU CONTRAT
+/* testSuccesContrat :
+ * renvoie 1 si tous les objectifs sont terminés
+ */
 int testSuccesContrat(Contrat c)
 {
     for (int i = 0; i < NB_TYPES_ITEM; i++)
         if (c.objectif_item[i] > 0)
             return 0;
-
-    return 1; // tous les objectifs atteints
+    return 1;
 }
-//  TEST ÉCHEC DU NIVEAU
+
+/* testEchecNiveau :
+ * renvoie 1 si perdu (plus de coups ou temps)
+ */
 int testEchecNiveau(int coupsRestants, int tempsRestant, Contrat c)
 {
-    if ((coupsRestants <= 0 || tempsRestant <= 0) &&
-        !testSuccesContrat(c))
-        return 1; // perdu
-
+    if ((coupsRestants <= 0 || tempsRestant <= 0) && !testSuccesContrat(c))
+        return 1;
     return 0;
 }
+
 void jouerNiveau(int niveau, int *vies)
 {
     int grille[NB_LIGNES][NB_COLONNES];
@@ -114,6 +119,7 @@ void jouerNiveau(int niveau, int *vies)
                niveau, *vies, coupsRestants, tempsRestant, score);
 
         int x1, y1, x2, y2;
+
         deplacementCurseur(&x1, &y1);
         deplacementCurseur(&x2, &y2);
 
