@@ -6,17 +6,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-
-// ============================================================================
-//  CHARGER LE CONTRAT
-// ============================================================================
-/*
- * Initialise les objectifs, coups max et temps max selon le niveau choisi.
- * Version simple pour le projet.
- */
 void chargerContrat(int niveau, Contrat *c)
 {
-    // Remise à zéro des objectifs
     for (int i = 0; i < NB_TYPES_ITEM; i++)
         c->objectif_item[i] = 0;
 
@@ -47,19 +38,6 @@ void chargerContrat(int niveau, Contrat *c)
         c->max_temps = 120;
     }
 }
-
-
-
-// ============================================================================
-//  INITIALISATION DU NIVEAU
-// ============================================================================
-/*
- * Prépare le niveau :
- *  - charge le contrat
- *  - initialise coups / temps / score
- *  - génère la grille aléatoire
- *  - stabilise la grille pour un départ jouable
- */
 void initNiveau(int niveau,
                 int grille[NB_LIGNES][NB_COLONNES],
                 Contrat *c,
@@ -72,29 +50,12 @@ void initNiveau(int niveau,
     *coupsRestants = c->max_coups;
     *tempsRestant  = c->max_temps;
     *score         = 0;
-
     srand(time(NULL));
-
-    // Génération aléatoire
     for (int i = 0; i < NB_LIGNES; i++)
         for (int j = 0; j < NB_COLONNES; j++)
             grille[i][j] = rand() % NB_TYPES_ITEM;
-
-    // Stabilisation pour éliminer les combinaisons automatiques
     stabiliserPlateau(grille);
 }
-
-
-
-// ============================================================================
-//  MISE À JOUR DU CONTRAT APRÈS SUPPRESSION
-// ============================================================================
-/*
- * Après suppression :
- *  - diminue objectifs si fruit demandé
- *  - score + bonus
- *  - sinon = pénalité (-1 coup)
- */
 void majContratApresSuppression(int typeFruit, int nb, int *score,
                                 Contrat *c, int *coupsRestants)
 {
@@ -115,11 +76,7 @@ void majContratApresSuppression(int typeFruit, int nb, int *score,
     }
 }
 
-
-
-// ============================================================================
 //  TEST SUCCÈS DU CONTRAT
-// ============================================================================
 int testSuccesContrat(Contrat c)
 {
     for (int i = 0; i < NB_TYPES_ITEM; i++)
@@ -128,12 +85,7 @@ int testSuccesContrat(Contrat c)
 
     return 1; // tous les objectifs atteints
 }
-
-
-
-// ============================================================================
 //  TEST ÉCHEC DU NIVEAU
-// ============================================================================
 int testEchecNiveau(int coupsRestants, int tempsRestant, Contrat c)
 {
     if ((coupsRestants <= 0 || tempsRestant <= 0) &&
@@ -142,22 +94,6 @@ int testEchecNiveau(int coupsRestants, int tempsRestant, Contrat c)
 
     return 0;
 }
-
-
-
-// ============================================================================
-//  JOUER UN NIVEAU COMPLET
-// ============================================================================
-/*
- * Boucle principale d’un niveau :
- *  - affichage
- *  - sélection 2 cases
- *  - échange
- *  - vérification
- *  - stabilisation
- *  - mise à jour contrat / score
- *  - test victoire/défaite
- */
 void jouerNiveau(int niveau, int *vies)
 {
     int grille[NB_LIGNES][NB_COLONNES];
@@ -178,8 +114,6 @@ void jouerNiveau(int niveau, int *vies)
                niveau, *vies, coupsRestants, tempsRestant, score);
 
         int x1, y1, x2, y2;
-
-        // Choix des 2 cases
         deplacementCurseur(&x1, &y1);
         deplacementCurseur(&x2, &y2);
 
