@@ -301,36 +301,7 @@ void effaceValeur(int grille[NB_LIGNES][NB_COLONNES], int val_case){
 
 
 
-//////// CODE DE CHAT GPT UTILISER POUR L'AFFICHAGE DE MES TEST!!!!!!!!!!!!
-	////////////////////////////////////////////////////
-void traiterCombinaisons(int grille[NB_LIGNES][NB_COLONNES]) {
-    Combinaison cx = detecterSuiteX(grille, 4);
-    Combinaison cy = detecterSuiteY(grille, 4);
-	Combinaison carres = detecterCarre(grille);
-	Combinaison croix = detecterCroix(grille);
 
-    printf("Suites horizontales : %d cases\n", cx.nb);
-    for (int i = 0; i < cx.nb; i++) {
-        printf("X: case %d -> (%d, %d)\n", i, cx.item[i].ligne, cx.item[i].colonne);
-    }
-
-    printf("Suites verticales : %d cases\n", cy.nb);
-    for (int i = 0; i < cy.nb; i++) {
-        printf("Y: case %d -> (%d, %d)\n", i, cy.item[i].ligne, cy.item[i].colonne);
-    }
-
-    printf("Carres : %d cases\n", carres.nb);
-    for (int i = 0; i < carres.nb; i++) {
-        printf("Y: case %d -> (%d, %d)\n", i, carres.item[i].ligne, carres.item[i].colonne);
-    }
-
-    printf("Croix : %d cases\n", croix.nb);
-    for (int i = 0; i < croix.nb; i++) {
-        printf("Y: case %d -> (%d, %d)\n", i, croix.item[i].ligne, croix.item[i].colonne);
-    }
-}
-/////////////////^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-///////////////////////////////////////////////////
 
 void suppression(int grille[NB_LIGNES][NB_COLONNES]) {
 	while (true) {
@@ -372,5 +343,6 @@ void suppression(int grille[NB_LIGNES][NB_COLONNES]) {
         remplirCasesVides(grille);
 
 	}
+
 
 }
