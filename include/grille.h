@@ -2,53 +2,83 @@
 #define GRILLE_H
 
 #include <stdbool.h>
+#include "Affichage.h"
 
-/* Constantes */
-#define NB_LIGNES 25
-#define NB_COLONNES 28
+/* Alias pour compatibilité avec le code existant */
+#define NB_LIGNES   LIGNE
+#define NB_COLONNES COLONNE
 
+/* =========================
+   Constantes (types d'items)
+   ========================= */
 #define JOKER 7
-#define BOMBE 8
+#define BOMBE 8   
 
 #define CARRE 1000
 #define CROIX 2000
 
-/* Structures */
+/* =========================
+   Structures
+   ========================= */
 typedef struct {
     int ligne;
     int colonne;
-    int type;
+    int type;      /* ex: 4 (suite), 6, CARRE, CROIX... */
 } Item;
 
 typedef struct {
-    int nb;
+    int nb;        /* nombre de cases dans la combinaison */
     Item item[NB_LIGNES * NB_COLONNES];
 } Combinaison;
 
-/* Fonctions plateau / affichage */
+/* =========================
+   Plateau / utilitaires
+   ========================= */
 void iniPlateau(int plateau[NB_LIGNES][NB_COLONNES]);
+void copierGrille(int grille[NB_LIGNES][NB_COLONNES],int grille2[NB_LIGNES][NB_COLONNES]);
 void lirePlateau(int plateau[NB_LIGNES][NB_COLONNES]);
 void remplirCasesVides(int grille[NB_LIGNES][NB_COLONNES]);
 
-/* Détection combinaisons */
+/* =========================
+   Détection de combinaisons
+   ========================= */
 Combinaison detecterSuiteX(int grille[NB_LIGNES][NB_COLONNES], int taille);
 Combinaison detecterSuiteY(int grille[NB_LIGNES][NB_COLONNES], int taille);
+
+Combinaison detecterDoubleSuiteX(int grille[NB_LIGNES][NB_COLONNES], int taille);
+Combinaison detecterDoubleSuiteY(int grille[NB_LIGNES][NB_COLONNES], int taille);
+
 Combinaison detecterCarre(int grille[NB_LIGNES][NB_COLONNES]);
 Combinaison detecterCroix(int grille[NB_LIGNES][NB_COLONNES]);
 
-/* Suites de 6 (effacement par valeur) */
-int detectersuite6x(int grille[NB_LIGNES][NB_COLONNES], int taille);
-int detectersuite6y(int grille[NB_LIGNES][NB_COLONNES], int taille);
+/* =========================
+   Suites de 6 (effacement global)
+   =========================
+   Retourne 0 si aucune suite6,
+   sinon retourne la valeur à effacer (non-joker si possible).
+*/
+int detectersuite6x(int grille[NB_LIGNES][NB_COLONNES]);
+int detectersuite6y(int grille[NB_LIGNES][NB_COLONNES]);
 
-/* Suppression / gravité */
-void SuppCombi(int grille[NB_LIGNES][NB_COLONNES], Combinaison combi);
-void appliquegravite(int grille[NB_LIGNES][NB_COLONNES]);
+/* =========================
+   Suppression / gravité
+   ========================= */
+void supprimeCombi(int grille[NB_LIGNES][NB_COLONNES], Combinaison combi);
+void appliqueGravite(int grille[NB_LIGNES][NB_COLONNES]);
 void effaceValeur(int grille[NB_LIGNES][NB_COLONNES], int val_case);
 
-/* Debug / tests */
-void traiterCombinaisons(int grille[NB_LIGNES][NB_COLONNES]);
-
-/* Boucle principale de suppression */
+/* =========================
+   Boucles de stabilisation
+   ========================= */
 void suppression(int grille[NB_LIGNES][NB_COLONNES]);
+void stabilisePlateau(int grille[NB_LIGNES][NB_COLONNES]);
 
-#endif 
+/* =========================
+   Coups du joueur
+   ========================= */
+int detecterCombinaisons(void);
+void echangerItems(int x1, int y1, int x2, int y2);
+int estVoisin(int x1, int y1, int x2, int y2);
+int mouvementValide(int grille[NB_LIGNES][NB_COLONNES], int x1, int y1, int x2, int y2);
+
+#endif /* GRILLE_H */
